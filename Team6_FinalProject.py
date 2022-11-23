@@ -52,6 +52,9 @@ crimedf["Hour"]=crimedf["START_DATE"].dt.hour
 #Creating new column for month
 crimedf["Month"]=crimedf["START_DATE"].dt.month
 
+#Creating new column for dayofweek 
+crimedf["DayofWeek"]=crimedf["START_DATE"].dt.day_name()
+
 
 
 
