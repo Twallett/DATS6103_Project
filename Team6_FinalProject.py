@@ -40,11 +40,18 @@ stopdf = stop[['GENDER',
 # Checking for Null values
 crimedf.isna().sum()
 
+#Dropping null values
 crimedf.dropna(axis=0,inplace=True)
 
+#Converting START_DATE to timestamp
 crimedf['START_DATE'] = pd.to_datetime(crimedf['START_DATE'])
 
+#Creating new column for hour
 crimedf["Hour"]=crimedf["START_DATE"].dt.hour
+
+#Creating new column for month
+crimedf["Month"]=crimedf["START_DATE"].dt.month
+
 
 
 
