@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import datetime
 
 
 #%%
@@ -36,6 +36,14 @@ stopdf = stop[['GENDER',
 #%% 
 #Cleaning the data set 
 
+# Checking for Null values
+crimedf.isna().sum()
+
+crimedf.dropna(axis=0,inplace=True)
+
+crimedf['START_DATE'] = pd.to_datetime(crimedf['START_DATE'])
+
+crimedf["Hour"]=crimedf["START_DATE"].dt.hour
 
 
 
