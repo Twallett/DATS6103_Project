@@ -17,7 +17,20 @@ stop = pd.read_csv('Stop_Data.csv')
 # %%
 #Selecting columns of interest 
 
+crimedf = crime[['X',
+                 'Y', 
+                 'SHIFT', 
+                 'METHOD', 
+                 'OFFENSE', 
+                 'BLOCK',
+                 'DISTRICT',
+                 'START_DATE']]
 
+stopdf = stop[['GENDER', 
+               'ETHNICITY', 
+               'AGE', 
+               'INVESTIGATIVE', 
+               'DATETIME']]
 
 
 #%% 
@@ -25,8 +38,12 @@ stop = pd.read_csv('Stop_Data.csv')
 
 
 
+
 #%%
 #EDA
+
+# Crimdedf: barchart of frequency by district, barchart of frequency by month, barchart of frequency by hour
+
 
 
 #%%
