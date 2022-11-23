@@ -6,7 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 import seaborn as sns
-
+import geopandas as gpd
+from shapely.geometry import Point, Polygon
 
 
 
@@ -19,6 +20,9 @@ stop = pd.read_csv('Stop_Data.csv')
 
 # %%
 #Selecting columns of interest 
+
+#X long 
+#y lat 
 
 crimedf = crime[['X',
                  'Y', 
@@ -58,8 +62,6 @@ crimedf["Month"]=crimedf["START_DATE"].dt.month
 crimedf["DayofWeek"]=crimedf["START_DATE"].dt.day_name()
 
 
-
-
 #%%
 #EDA
 
@@ -79,6 +81,31 @@ plt.pie(crimedf['DayofWeek'].value_counts().values, labels=crimedf['DayofWeek'].
 plt.title("Pie chart showing crime during different days of the week",bbox={'facecolor':'1.0', 'pad':5})
 plt.legend(bbox_to_anchor=(2,0.5), loc="center right")
 plt.show()
+
+#Countplot for district
+sns.countplot(x ='DISTRICT', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime in different districts')
+
+#%%
+
+street_map = gpd.read_file('/Users/tylerwallett/Downloads/tl_2016_11_cousub')
+
+street_map.plot()
+
+#%%
+crs = {'init': 'epsg:4326'}
+
+geometry = [Point(xy) for xy in zip( crimedf['X'], crimedf['Y'])]
+
+fig, ax = plt.subplot(figsize = (15,15))
+
+geo_df = gpd.GeoDataFrame(crimedf,
+                 crs=crs,
+                 geometry= geometry)
+
+geo_df[geo_df["OFFENSE"] == 'HOMICIDE'].plot()
+#%%
+
+
 
 #%%
 #Modeling 
