@@ -86,6 +86,7 @@ plt.show()
 sns.countplot(x ='DISTRICT', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime in different districts')
 
 #%%
+#Geopandas map
 
 street_map = gpd.read_file('/Users/tylerwallett/Downloads/Police_Districts')
 
@@ -101,15 +102,22 @@ geo_df = gpd.GeoDataFrame(crimedf,
                  geometry= geometry)
 
 #%%
-
+#Frequency of crimes in DC 2022 by district
 fig, ax = plt.subplots(figsize = (15,15))
 
-street_map.plot(ax =ax)
+street_map.plot(ax =ax, color = 'grey')
 
-geo_df[geo_df["OFFENSE"] == 'HOMICIDE'].plot(ax=ax, color = 'red')
+geo_df[geo_df["DISTRICT"] == 1].plot(ax=ax, color = 'red')
+geo_df[geo_df["DISTRICT"] == 2].plot(ax=ax, color = 'blue')
+geo_df[geo_df["DISTRICT"] == 3].plot(ax=ax, color = 'yellow')
+geo_df[geo_df["DISTRICT"] == 4].plot(ax=ax, color = 'orange')
+geo_df[geo_df["DISTRICT"] == 5].plot(ax=ax, color = 'green')
+geo_df[geo_df["DISTRICT"] == 6].plot(ax=ax, color = 'purple')
+geo_df[geo_df["DISTRICT"] == 7].plot(ax=ax, color = 'black')
 
-#%%
-
+ax.legend(["DISTRICT 1", "DISTRICT 2", "DISTRICT 3", "DISTRICT 4", "DISTRICT 5", "DISTRICT 6", "DISTRICT 7"])
+plt.axis('off')
+plt.title('Frequency of crimes in DC 2022 by district')
 
 
 #%%
