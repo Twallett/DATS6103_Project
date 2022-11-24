@@ -87,7 +87,7 @@ sns.countplot(x ='DISTRICT', data = crimedf,palette = "Set2").set(title='Countpl
 
 #%%
 
-street_map = gpd.read_file('/Users/tylerwallett/Downloads/tl_2016_11_cousub')
+street_map = gpd.read_file('/Users/tylerwallett/Downloads/Police_Districts')
 
 street_map.plot()
 
@@ -96,13 +96,18 @@ crs = {'init': 'epsg:4326'}
 
 geometry = [Point(xy) for xy in zip( crimedf['X'], crimedf['Y'])]
 
-fig, ax = plt.subplot(figsize = (15,15))
-
 geo_df = gpd.GeoDataFrame(crimedf,
                  crs=crs,
                  geometry= geometry)
 
-geo_df[geo_df["OFFENSE"] == 'HOMICIDE'].plot()
+#%%
+
+fig, ax = plt.subplots(figsize = (15,15))
+
+street_map.plot(ax =ax)
+
+geo_df[geo_df["OFFENSE"] == 'HOMICIDE'].plot(ax=ax, color = 'red')
+
 #%%
 
 
