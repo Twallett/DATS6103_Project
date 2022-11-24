@@ -128,6 +128,10 @@ geo_df = gpd.GeoDataFrame(crimedf,
                  crs=crs,
                  geometry= geometry)
 
+classlocation = Point(-77.046370, 38.899110)
+
+gdf_location = gpd.GeoSeries([classlocation], crs = {'init': 'epsg:4326'})
+
 #%%
 #Frequency of crimes in DC 2022 by district
 fig, ax = plt.subplots(figsize = (15,15))
@@ -140,11 +144,15 @@ geo_df[geo_df["DISTRICT"] == 3].plot(ax=ax, color = 'yellow', alpha =0.5)
 geo_df[geo_df["DISTRICT"] == 4].plot(ax=ax, color = 'orange', alpha =0.5)
 geo_df[geo_df["DISTRICT"] == 5].plot(ax=ax, color = 'green', alpha =0.5)
 geo_df[geo_df["DISTRICT"] == 6].plot(ax=ax, color = 'purple', alpha =0.5)
-geo_df[geo_df["DISTRICT"] == 7].plot(ax=ax, color = 'black', alpha =0.5)
+geo_df[geo_df["DISTRICT"] == 7].plot(ax=ax, color = 'brown', alpha =0.5)
 
-ax.legend(["DISTRICT 1", "DISTRICT 2", "DISTRICT 3", "DISTRICT 4", "DISTRICT 5", "DISTRICT 6", "DISTRICT 7"])
+gdf_location.plot(ax=ax, color='black', marker = '*', markersize = 500)
+
+ax.legend(["DISTRICT 1", "DISTRICT 2", "DISTRICT 3", "DISTRICT 4", "DISTRICT 5", "DISTRICT 6", "DISTRICT 7", "CLASSROOM"])
 plt.axis('off')
 plt.title('Frequency of crimes in DC 2022 by district')
+
+
 
 #%%
 fig, ax = plt.subplots(figsize = (15,15))
@@ -163,8 +171,9 @@ geo_df[geo_df["DayofWeek"] == 'Friday'].plot(ax=ax, color = 'green', alpha =0.5)
 
 geo_df[geo_df["DayofWeek"] == 'Saturday'].plot(ax=ax, color = 'purple', alpha =0.5)
 
-geo_df[geo_df["DayofWeek"] == 'Sunday'].plot(ax=ax, color = 'black', alpha =0.5)
+geo_df[geo_df["DayofWeek"] == 'Sunday'].plot(ax=ax, color = 'brown', alpha =0.5)
 
+gdf_location.plot(ax=ax, color='black', marker = '*', markersize = 500)
 
 plt.axis('off')
 plt.title('Frequency of crimes in DC 2022 by district')
