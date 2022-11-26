@@ -8,6 +8,7 @@ import datetime
 import seaborn as sns
 import geopandas as gpd
 from shapely.geometry import Point, Polygon
+from sklearn.model_selection import train_test_split
 
 
 
@@ -74,14 +75,15 @@ crimedf['SHIFT'] = crimedf['SHIFT'].map(lambda x: 1 if x == 'MIDNIGHT' else 2 if
 crimedf['METHOD'] = crimedf['METHOD'].map(lambda x: 1 if x == 'KNIFE' else 2 if x == 'GUN' else 3 if x == 'OTHERS' else np.nan)
 
 #%%
-#Reformatting Offense: 1- Homicide, 2-Theft, 3- Motor vehicle theft, 4- Assault, 5- Robbery, 6- Burglary, 7- Sex abuse and 8- Arson
+#Reformatting Offense: 1- Homicide, 2-Theft, 3- Motor vehicle theft, 4 - Grand theft auto, 5- Assault w/ dangerous weapond, 6- Robbery, 7- burglary, 8- sex abuse and 9 - arson
 
-crimedf['OFFENSE'] = crimedf['OFFENSE'].map(lambda x: 1 if x == 'HOMICIDE' else 2 if x == 'THEFT/OTHER' else 3 if (x == 'MOTOR VEHICLE THEFT')|(x == 'THEFT F/AUTO') else 4 if x == 'ASSAULT W/DANGEROUS WEAPON' else 5 if x == 'ROBBERY' else 6 if x == 'BURGLARY' else 7 if x == 'SEX ABUSE' else 8 if x == 'ARSON' else np.nan)
+crimedf['OFFENSE'] = crimedf['OFFENSE'].map(lambda x: 1 if x == 'HOMICIDE' else 2 if x == 'THEFT/OTHER' else 3 if x == 'MOTOR VEHICLE THEFT' else 4 if x == 'THEFT F/AUTO' else 5 if x == 'ASSAULT W/DANGEROUS WEAPON' else 6 if x == 'ROBBERY' else 7 if x == 'BURGLARY' else 8 if x == 'SEX ABUSE' else 9 if x == 'ARSON' else np.nan)
 
 #%%
 #Reformatting of Day of Week: 1- Monday, 2-Tuesday, and so on...
 
 crimedf['NewDayofWeek'] = crimedf['DayofWeek'].map(lambda x: 1 if x == 'Monday' else 2 if x == 'Tuesday' else 3 if x == 'Wednesday' else 4 if x == 'Thursday' else 5 if x == 'Friday' else 6 if x == 'Saturday' else 7 if x == 'Sunday' else np.nan)
+
 
 #%%
 
@@ -116,6 +118,35 @@ plt.show()
 sns.countplot(x ='DISTRICT', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime in different districts')
 
 #%%
+
+#Countplot for SHIFT
+fig, ax = plt.subplots(figsize = (7,7))
+
+sns.countplot(x ='SHIFT', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime during days of week')
+
+ax.set_xticklabels(["Midnight","Evening","Day"])
+
+#%%
+#Countplot for Method
+fig, ax = plt.subplots(figsize = (7,7))
+
+sns.countplot(x ='METHOD', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime during days of week')
+
+ax.set_xticklabels(["Knife","Gun","Others"])
+
+#%%
+#Countplot for offense
+
+fig, ax = plt.subplots(figsize = (7,7))
+
+sns.countplot(x ='OFFENSE', data = crimedf,palette = "Set2").set(title='Countplot for frequncy of crime during days of week')
+
+ax.set_xticklabels(["Homicide", "Theft", "Motor vehicle theft", "Grand theft auto", "Assault", "Robbery", "Burglary", "Sex abuse", "Arson"], rotation = 45)
+
+#1- Homicide, 2-Theft, 3- Motor vehicle theft, 4 - Grand theft auto, 5- Assault w/ dangerous weapond, 6- Robbery, 7- burglary, 8- sex abuse and 9 - arson
+
+
+#%%
 #Geopandas map
 
 street_map = gpd.read_file('/Users/tylerwallett/Downloads/Police_Districts')
@@ -146,38 +177,57 @@ geo_df[geo_df["DISTRICT"] == 5].plot(ax=ax, color = 'green', alpha =0.5)
 geo_df[geo_df["DISTRICT"] == 6].plot(ax=ax, color = 'purple', alpha =0.5)
 geo_df[geo_df["DISTRICT"] == 7].plot(ax=ax, color = 'brown', alpha =0.5)
 
-gdf_location.plot(ax=ax, color='black', marker = '*', markersize = 500)
+gdf_location.plot(ax=ax, color='gold', marker = '*', markersize = 500)
 
 ax.legend(["DISTRICT 1", "DISTRICT 2", "DISTRICT 3", "DISTRICT 4", "DISTRICT 5", "DISTRICT 6", "DISTRICT 7", "CLASSROOM"])
 plt.axis('off')
 plt.title('Frequency of crimes in DC 2022 by district')
 
 
+# %%
+#Modeling 
+
+# Spearman Heatmap
+
+heatmapcrimedf = crimedf[['SHIFT',
+                         'OFFENSE',
+                         'DISTRICT',
+                         'Hour',
+                         'Month',
+                         'NewDayofWeek']]
+                         
+mask = np.triu(np.ones_like(heatmapcrimedf.corr(), dtype=np.bool))
+
+world1corr = heatmapcrimedf.corr(method='spearman')
+
+sns.heatmap(world1corr, 
+            annot =True, 
+            mask=mask)
+                         
+#%%
+# Modeling by district
+
+from sklearn.neighbors import KNeighborsClassifier
+
+x_district = crimedf[['OFFENSE', 'SHIFT', 'NewDayofWeek', 'Hour', 'METHOD']]
+y_district = crimedf['DISTRICT']
+
+k = 7
+
+x_train, x_test, y_train, y_test = train_test_split(x_district, y_district, test_size= 0.20, random_state=123)
+
+knn = KNeighborsClassifier(n_neighbors=k)
+knn.fit(x_train,y_train)
+ytest_pred = knn.predict(x_test)
+print(knn.score(x_test,y_test))
 
 #%%
-fig, ax = plt.subplots(figsize = (15,15))
+from sklearn.model_selection import cross_val_score
 
-street_map.plot(ax =ax, color = 'grey', edgecolor = 'black')
+cv_results = cross_val_score(knn, x_district, y_district, cv=10)
+print(cv_results) 
+print(np.mean(cv_results)) 
 
-geo_df[geo_df["DayofWeek"] == 'Monday'].plot(ax=ax, color = 'red', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Tuesday'].plot(ax=ax, color = 'blue', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Wednesday'].plot(ax=ax, color = 'yellow', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Thursday'].plot(ax=ax, color = 'orange', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Friday'].plot(ax=ax, color = 'green', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Saturday'].plot(ax=ax, color = 'purple', alpha =0.5)
-
-geo_df[geo_df["DayofWeek"] == 'Sunday'].plot(ax=ax, color = 'brown', alpha =0.5)
-
-gdf_location.plot(ax=ax, color='black', marker = '*', markersize = 500)
-
-plt.axis('off')
-plt.title('Frequency of crimes in DC 2022 by district')
-
-#Doesnt really say much...
 
 # %%
+
