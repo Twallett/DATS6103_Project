@@ -205,14 +205,14 @@ sns.heatmap(world1corr,
             mask=mask)
                          
 #%%
-# Modeling by district
+# Modeling by offense
 
 from sklearn.neighbors import KNeighborsClassifier
 
-x_district = crimedf[['OFFENSE', 'SHIFT', 'NewDayofWeek', 'Hour', 'METHOD']]
-y_district = crimedf['DISTRICT']
+x_district = crimedf[['DISTRICT', 'NewDayofWeek', 'Hour']]
+y_district = crimedf['OFFENSE']
 
-k = 7
+k = 9
 
 x_train, x_test, y_train, y_test = train_test_split(x_district, y_district, test_size= 0.20, random_state=123)
 
@@ -228,6 +228,4 @@ cv_results = cross_val_score(knn, x_district, y_district, cv=10)
 print(cv_results) 
 print(np.mean(cv_results)) 
 
-
 # %%
-
