@@ -24,5 +24,13 @@ print(spotify.head())
 print(spotify.info())
 print(spotify.shape)
 
+#%% 
+#Cleaning the data set 
+
+# Checking for Null values
+spotify.isna().sum()
+
+#Dropping null values
+spotify.dropna(axis=0,inplace=True)
 
 # %%
