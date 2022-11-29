@@ -9,8 +9,12 @@ import seaborn as sns
 import geopandas as gpd
 from shapely.geometry import Point, Polygon
 from sklearn.model_selection import train_test_split
-
-
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 
 #%%
 #Importing datasets 
@@ -207,25 +211,36 @@ sns.heatmap(world1corr,
 #%%
 # Modeling by offense
 
-from sklearn.neighbors import KNeighborsClassifier
+x_district = crimedf[['OFFENSE', 'NewDayofWeek', 'Hour']]
+y_district = crimedf['DISTRICT']
 
-x_district = crimedf[['DISTRICT', 'NewDayofWeek', 'Hour']]
-y_district = crimedf['OFFENSE']
-
-k = 9
+k = 5
 
 x_train, x_test, y_train, y_test = train_test_split(x_district, y_district, test_size= 0.20, random_state=123)
 
 knn = KNeighborsClassifier(n_neighbors=k)
 knn.fit(x_train,y_train)
-ytest_pred = knn.predict(x_test)
+ypred_knn = knn.predict(x_test)
 print(knn.score(x_test,y_test))
+print(classification_report(y_test, ypred_knn))
+print(confusion_matrix(y_test, ypred_knn))
 
 #%%
-from sklearn.model_selection import cross_val_score
 
 cv_results = cross_val_score(knn, x_district, y_district, cv=10)
 print(cv_results) 
 print(np.mean(cv_results)) 
+
+# %%
+
+lr = LogisticRegression()
+lr.fit(x_train, y_train)
+
+print(lr.score(x_train, y_train))
+print(lr.score(x_test, y_test))
+
+ypred_lr = lr.predict(x_test)
+print(classification_report(y_test, ypred_lr))
+print(confusion_matrix(y_test, ypred_lr))
 
 # %%
