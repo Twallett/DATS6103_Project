@@ -135,6 +135,18 @@ sns.heatmap(spotifycorr,
 
 plt.title('Correlation plot of Spotifydf')
 
+
+#%%
+sns.pairplot(spotifydf)
+
+#%%
+grid = sns.PairGrid(data= spotifydf,
+                    vars = ['energy', 'loudness', 'explicit'], size = 4)
+
+#%%
+spotifydf.hist(bins = 20, color = 'orange', figsize = (20, 14))
+
+
 # %%
 # Logistic regression
 
