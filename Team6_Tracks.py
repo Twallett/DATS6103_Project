@@ -82,10 +82,12 @@ spotify.dropna(axis=0,inplace=True)
 
 sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Countplot for popularity')
 
+spotify = spotify[spotify['popularity'] != 0]
+
 #%%
 #Dropping songs with 0 popularity given that it will skew the results later on...
 
-spotify['popularity'] = spotify['popularity'].map(lambda x: np.nan if x == 0 else 1 if x <= 50 else 2 if x <= 100 else np.nan)
+spotify['popularity'] = spotify['popularity'].map(lambda x: 0 if x <= 50 else 1 if x <= 100 else np.nan)
 
 spotify = spotify.dropna()
 
@@ -142,9 +144,9 @@ spotifydf.hist(bins = 20, color = 'orange', figsize = (20, 14))
 #%%
 # EDA on popular and unpopular data over the years
 
-unpopular = spotifydf[spotifydf['popularity'] == 1]
+unpopular = spotifydf[spotifydf['popularity'] == 0]
 
-popular = spotifydf[spotifydf['popularity'] == 2]
+popular = spotifydf[spotifydf['popularity'] == 1]
 
 #%%
 # Explicit songs over the years
@@ -236,9 +238,39 @@ print(classification_report(y_test, y_predLogistic))
 print(confusion_matrix(y_test, y_predLogistic))
 
 #%%
+#Cross validation
+
+cv_logistic = cross_val_score(modelLogistic, x_train_res, y_train_res, cv = 10)
+
+print(cv_logistic)
+print(cv_logistic.mean())
+
+#%%
 # ROC and AUC 
+from sklearn.metrics import roc_auc_score, roc_curve
 
+ns_probs = [0 for _ in range(len(y_test))]
 
+lr_probs = modelLogistic.predict_proba(x_test)
+
+lr_probs = lr_probs[:, 1]
+
+ns_auc = roc_auc_score(y_test, ns_probs)
+lr_auc = roc_auc_score(y_test, lr_probs)
+
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+
+ns_fpr, ns_tpr, _ = roc_curve(y_test, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
+
+plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+
+plt.legend()
 
 #%%
 #Tentative: Statsmodel
