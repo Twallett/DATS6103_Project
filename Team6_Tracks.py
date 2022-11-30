@@ -45,7 +45,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import datetime
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -56,6 +55,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 import statsmodels.api as sm
 from imblearn.over_sampling import SMOTE
+from sklearn.metrics import roc_auc_score, roc_curve
 
 #%%
 #Importing dataset 
@@ -247,7 +247,6 @@ print(cv_logistic.mean())
 
 #%%
 # ROC and AUC 
-from sklearn.metrics import roc_auc_score, roc_curve
 
 ns_probs = [0 for _ in range(len(y_test))]
 
