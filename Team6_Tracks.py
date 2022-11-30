@@ -124,4 +124,26 @@ spotifydf = spotify.drop(columns= ['id',
 #%%
 # (Modeling) SMART Question: Based on the features, will a song be popular or not?
 
+fig, ax = plt.subplots(figsize = (15,15))
 
+mask1 = np.triu(np.ones_like(spotifydf.corr(), dtype=np.bool))
+
+spotifycorr = spotifydf.corr()
+sns.heatmap(spotifycorr, 
+            annot =True, 
+            mask=mask1)
+
+plt.title('Correlation plot of Spotifydf')
+
+# %%
+# Logistic regression
+
+
+
+
+#%%
+# K-Nearest Neighbors 
+
+
+#%%
+# Random Forest 
