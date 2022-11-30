@@ -55,6 +55,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 import statsmodels.api as sm
+from imblearn.over_sampling import SMOTE
 
 #%%
 #Importing dataset 
@@ -77,13 +78,14 @@ spotify.dropna(axis=0,inplace=True)
 # %%
 #Reformatting variables of interest
 
-#Popularity to nominal ordinal variable: 1- 0 to 25, 2- 25 to 50, 3- 50-75 and 4- 75-100
+#Popularity to nominal ordinal variable: 1- 0 to 33, 2- 33-66 and 3- 66-100 
 
 sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Countplot for popularity')
 
 #%%
 #Dropping songs with 0 popularity given that it will skew the results later on...
-spotify['popularity'] = spotify['popularity'].map(lambda x: np.nan if x == 0 else 1 if x <= 25 else 2 if x <= 50 else 3 if x <= 75 else 4 if x <= 100 else np.nan)
+
+spotify['popularity'] = spotify['popularity'].map(lambda x: np.nan if x == 0 else 1 if x <= 50 else 2 if x <= 100 else np.nan)
 
 spotify = spotify.dropna()
 
@@ -93,7 +95,6 @@ sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Coun
 #Reformating duration_ms to duration in minutes 
 
 spotify['duration_min'] = round(spotify['duration_ms']* 1.6667e-5, 2)
-
 
 #%%
 #Reformating release_date
@@ -105,57 +106,155 @@ spotify["year"] = spotify["release_date"].dt.year
 spotify["month"] = spotify["release_date"].dt.month
 
 #%%
+#Deleting songs whose release year is past 2022
+spotify['year'] = spotify['year'].map(lambda x: np.nan if x > 2022 else x)
+
+spotify = spotify.dropna()
+
+#%%
 #Dropping columns for EDA and modeling
 
 spotifydf = spotify.drop(columns= ['id',
                                    'duration_ms'])
 
-
 #%%
 #Answering the questions
 
-# (EDA) SMART Question: What factors make a song danceable? 
-
-# (EDA) SMART Question: Does loudness influence the energy of a song?
-
 # (EDA) SMART Question: What factors affect the popularity of a song?
 
-
-#%%
-# (Modeling) SMART Question: Based on the features, will a song be popular or not?
-
+# Correlation plot to check for linear relationships 
 fig, ax = plt.subplots(figsize = (15,15))
 
 mask1 = np.triu(np.ones_like(spotifydf.corr(), dtype=np.bool))
 
-spotifycorr = spotifydf.corr()
-sns.heatmap(spotifycorr, 
+spotifydfcorr = spotifydf.corr()
+sns.heatmap(spotifydfcorr, 
             annot =True, 
             mask=mask1)
 
 plt.title('Correlation plot of Spotifydf')
 
-
 #%%
-sns.pairplot(spotifydf)
-
-#%%
-grid = sns.PairGrid(data= spotifydf,
-                    vars = ['energy', 'loudness', 'explicit'], size = 4)
-
-#%%
+# Spotifydf at a glance
 spotifydf.hist(bins = 20, color = 'orange', figsize = (20, 14))
 
+
+#%%
+# EDA on popular and unpopular data over the years
+
+unpopular = spotifydf[spotifydf['popularity'] == 1]
+
+popular = spotifydf[spotifydf['popularity'] == 2]
+
+#%%
+# Explicit songs over the years
+
+sns.lineplot(x = 'year',
+             y = 'explicit',
+             data= unpopular)
+
+sns.lineplot(x = 'year',
+             y = 'explicit',
+             data= popular)
+
+#%%
+# Danceability songs over the years
+
+sns.lineplot(x = 'year',
+             y = 'danceability',
+             data= unpopular)
+
+sns.lineplot(x = 'year',
+             y = 'danceability',
+             data= popular)
+
+#%%
+# Energy songs over the years
+
+sns.lineplot(x = 'year',
+             y = 'energy',
+             data= unpopular)
+
+sns.lineplot(x = 'year',
+             y = 'energy',
+             data= popular)
+
+#%%
+# loudness songs over the years
+
+sns.lineplot(x = 'year',
+             y = 'loudness',
+             data= unpopular)
+
+sns.lineplot(x = 'year',
+             y = 'loudness',
+             data= popular)
+
+#%%
+# Accousticness songs over the years
+
+sns.lineplot(x = 'year',
+             y = 'acousticness',
+             data= unpopular)
+
+sns.lineplot(x = 'year',
+             y = 'acousticness',
+             data= popular)
+
+
+#%%
+# (Modeling) SMART Question: Based on the features, will a song be popular or not?
 
 # %%
 # Logistic regression
 
-import statsmodels.api as sm
+x_spotifydf = spotifydf[['explicit',
+                         'danceability',
+                         'energy',
+                         'loudness',
+                         'acousticness',
+                         'year']]
+
+y_spotifydf = spotifydf[['popularity']]
+
+x_train, x_test, y_train, y_test = train_test_split(x_spotifydf, y_spotifydf, test_size= 0.2, random_state= 321)
+
+smo = SMOTE(random_state = 2)
+
+x_train_res, y_train_res = smo.fit_resample(x_train, y_train)
+
+modelLogistic = LogisticRegression()
+
+modelLogistic.fit(x_train_res, y_train_res)
+
+y_predLogistic = modelLogistic.predict(x_test)
+
+print(modelLogistic.score(x_train_res, y_train_res))
+print(modelLogistic.score(x_test, y_test))
+
+print(classification_report(y_test, y_predLogistic))
+print(confusion_matrix(y_test, y_predLogistic))
+
+#%%
+# ROC and AUC 
+
 
 
 #%%
-# K-Nearest Neighbors 
+#Tentative: Statsmodel
 
+# smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True)
+
+# from statsmodels.formula.api import glm
+
+# modelGLM = glm(formula= 'popularity ~ danceability + energy', data= smotelogistic, family=sm.families.Binomial())
+
+# modelGLM = modelGLM.fit()
+
+# print( modelGLM.summary())
+
+#%%
+# K-Nearest Neighbors 
 
 #%%
 # Random Forest 
