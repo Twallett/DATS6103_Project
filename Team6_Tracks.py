@@ -119,11 +119,11 @@ spotify = spotify.dropna()
 spotifydf = spotify.drop(columns= ['id',
                                    'duration_ms'])
 
-#%%
-#Answering the questions
-
+#%%[markdown]
+# Answering the questions
+#
 # (EDA) SMART Question: What factors affect the popularity of a song?
-
+#
 # Correlation plot to check for linear relationships 
 fig, ax = plt.subplots(figsize = (15,15))
 
