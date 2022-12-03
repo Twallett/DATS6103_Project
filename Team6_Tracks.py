@@ -285,6 +285,9 @@ plt.legend()
 # print( modelGLM.summary())
 
 #%%
+sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2").set(title='Countplot for popularity with SMOTE')
+
+#%%
 # K-Nearest Neighbors 
 
 #%%
