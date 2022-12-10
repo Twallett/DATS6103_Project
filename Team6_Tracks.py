@@ -238,6 +238,31 @@ print(classification_report(y_test, y_predLogistic))
 print(confusion_matrix(y_test, y_predLogistic))
 
 #%%
+#Number of songs released in per year
+
+spotifydf["year"] = spotifydf["release_date"].dt.year
+sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'blue').set(title="Number of song per year")
+
+#%%
+#Most popular songs
+most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
+most_popularity.head(10)
+
+
+lead_songs = most_popularity[['name', 'popularity']].head(20)
+lead_songs
+#%%
+fig, ax = plt.subplots(figsize = (10, 10))
+
+ax = sns.barplot(x = lead_songs.popularity, y = lead_songs.name, color = 'lightgreen', orient = 'h', edgecolor = 'black', ax = ax)
+
+ax.set_xlabel('Popularity', c ='red', fontsize = 12, weight = 'bold')
+ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
+ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
+
+plt.show()
+
+#%%
 #Cross validation
 
 cv_logistic = cross_val_score(modelLogistic, x_train_res, y_train_res, cv = 10)
@@ -289,6 +314,58 @@ sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2").set(title='
 
 #%%
 # K-Nearest Neighbors 
+# import packages
+import sklearn as sk
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+import seaborn as sns
+
+#%%
+#Data pre-processing
+X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+y=spotifydf["popularity"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
+
+#%%
+#modelling
+
+# knn = KNeighborsClassifier(n_neighbors = 3)
+# knn.fit(X_train,y_train)
+# knn.predict(X_test)
+# knn.score(X_test, y_test)
+
+b={}
+for i in range(1,21):
+    knn = KNeighborsClassifier(n_neighbors = i)
+    knn.fit(X_train,y_train)
+    knn.predict(X_test)
+    print(i)
+    print(knn.score(X_test, y_test))
+    b.update({i:knn.score(X_test, y_test)})
+    print("   ")
+#%%
+a=pd.DataFrame.from_dict(b)
+#%%
+sns.lineplot(a)
+
+
+# knn_cv = KNeighborsClassifier(n_neighbors=3)
+# cv_scores = cross_val_score(knn_cv, X, y, cv=5)
+# print(cv_scores)
+# print(‘cv_scores mean:{}’.format(np.mean(cv_scores)))
+
+
+# knn2 = KNeighborsClassifier()
+# param_grid = {‘n_neighbors’: np.arange(1, 25)}
+# knn_gscv = GridSearchCV(knn2, param_grid, cv=5)
+# knn_gscv.fit(X, y)
+# print(knn_gscv.best_params_)
+# print(knn_gscv.best_score_)
+
+
 
 #%%
 # Random Forest 
