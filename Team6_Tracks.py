@@ -238,31 +238,6 @@ print(classification_report(y_test, y_predLogistic))
 print(confusion_matrix(y_test, y_predLogistic))
 
 #%%
-#Number of songs released in per year
-
-spotifydf["year"] = spotifydf["release_date"].dt.year
-sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'blue').set(title="Number of song per year")
-
-#%%
-#Most popular songs
-most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
-most_popularity.head(10)
-
-
-lead_songs = most_popularity[['name', 'popularity']].head(20)
-lead_songs
-#%%
-fig, ax = plt.subplots(figsize = (10, 10))
-
-ax = sns.barplot(x = lead_songs.popularity, y = lead_songs.name, color = 'lightgreen', orient = 'h', edgecolor = 'black', ax = ax)
-
-ax.set_xlabel('Popularity', c ='red', fontsize = 12, weight = 'bold')
-ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
-ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
-
-plt.show()
-
-#%%
 #Cross validation
 
 cv_logistic = cross_val_score(modelLogistic, x_train_res, y_train_res, cv = 10)
@@ -365,6 +340,31 @@ sns.lineplot(a)
 # print(knn_gscv.best_params_)
 # print(knn_gscv.best_score_)
 
+
+#%%
+#Number of songs released in per year
+
+spotifydf["year"] = spotifydf["release_date"].dt.year
+sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'blue').set(title="Number of song per year")
+
+#%%
+#Most popular songs
+most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
+most_popularity.head(10)
+
+
+lead_songs = most_popularity[['name', 'popularity']].head(20)
+lead_songs
+#%%
+fig, ax = plt.subplots(figsize = (10, 10))
+
+ax = sns.barplot(x = lead_songs.popularity, y = lead_songs.name, color = 'lightgreen', orient = 'h', edgecolor = 'black', ax = ax)
+
+ax.set_xlabel('Popularity', c ='red', fontsize = 12, weight = 'bold')
+ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
+ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
+
+plt.show()
 
 
 #%%
