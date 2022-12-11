@@ -203,6 +203,78 @@ sns.lineplot(x = 'year',
              y = 'acousticness',
              data= popular)
 
+#%%
+# EDA on Energy
+
+#energy vs popularity, explpicit, danceability, liveness, year
+#q1 interpreatation of explicit&popularity, does 0= True or False
+#idea1 group multiple year into one bracket and compare energy by decade
+#q2 what is mode
+#
+
+
+
+
+import plotly.express as px
+#%%
+fig=px.histogram(spotifydf,x="energy")
+fig.show()
+
+#%%
+# sns.displot(spotifydf, x="energy")
+# sns.displot(spotifydf, x="energy",kind="kde")
+# sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
+# sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
+# sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
+# sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
+# sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
+# useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
+
+# sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
+sns.regplot(data=spotifydf,y='loudness',x='energy',color='c').set(title='Loudness vs Energy')
+
+
+#%%
+spotifydf.columns
+#%%
+spotifydf["artists"].describe()
+#%%
+spotifydf["mode"].unique()
+a=spotifydf.columns
+#%%
+k=0
+for i in spotifydf.columns:
+    if k>6:
+        break
+    k+=1
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
+for i in a[6:13]:
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
+for i in a[13:19]:
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
+#%%
+
+#%%
+
+
+#%%
+
+
+
+#%%
+
+
+#%%
+
+
+#%%
+
 
 #%%
 # (Modeling) SMART Question: Based on the features, will a song be popular or not?
@@ -292,3 +364,94 @@ sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2").set(title='
 
 #%%
 # Random Forest 
+spotifydf.
+# %%
+spotifydf.columns
+# %%
+#dance,energy
+spotifydf["month"].plot(kind="hist")
+# %%
+x_spotifydf = spotifydf.loc[:,["explicit","danceability","energy","loudness","mode","speechiness","acousticness","instrumentalness","liveness","valence","tempo","duration_min","year","month"]]
+
+y_spotifydf = spotifydf[['popularity']]
+
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf, y_spotifydf, test_size= 0.2, random_state= 321)
+
+#%%
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectFromModel
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC
+
+#%%
+
+sel = SelectFromModel(RandomForestClassifier(n_estimators = 100))
+sel.fit(X_train, y_train)
+
+print(sel.get_support())
+
+selected_feat= X_train.columns[(sel.get_support())]
+print(len(selected_feat))
+
+print(selected_feat)
+
+# pd.series(sel.estimator_,feature_importances_,.ravel()).hist()
+
+
+#%%
+#Based on Feature selection creating new training data
+x_spotifydf = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+
+y_spotifydf = spotifydf[['popularity']]
+
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf, y_spotifydf, test_size= 0.2, random_state= 321)
+
+# %%
+#RF using GridSearchCV
+
+rfc=RandomForestClassifier(random_state=42)
+
+param_grid = { 
+    'n_estimators': [100,200,300,400,500],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    'max_depth' : [4,5,6,7,8,10,14,20],
+    'criterion' :['gini', 'entropy',"log_loss"],
+    'bootstrap' :[True,False],
+    'oob_score' :[True,False]
+}
+
+CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
+CV_rfc.fit(X_train, Y_train)
+
+
+print(CV_rfc.best_params_)
+
+
+
+#%%
+#Training RF on best parameters
+rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 200, max_depth=8, criterion='gini')
+rf_best.fit(X_train, Y_train)
+y_pred=rf_best.predict(X_test)
+print(accuracy_score(Y_test,y_pred))
+
+
+#%%
+# Visualization of Result
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+
+
+ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
+
+
+plt.title('Actual vs Fitted Values for Price')
+
+
+plt.show()
+plt.close()
