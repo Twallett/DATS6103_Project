@@ -444,7 +444,7 @@ plt.show()
 
 #%%
 # Random Forest 
-spotifydf.
+
 # %%
 spotifydf.columns
 # %%
