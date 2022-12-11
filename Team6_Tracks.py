@@ -78,7 +78,7 @@ spotify.dropna(axis=0,inplace=True)
 # %%
 #Reformatting variables of interest
 
-#Popularity to nominal ordinal variable: 1- 0 to 33, 2- 33-66 and 3- 66-100 
+#Popularity to nominal ordinal variable: 0-Not popular 0-50, 1-Popular 50-100
 
 sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Countplot for popularity')
 
@@ -119,6 +119,9 @@ spotify = spotify.dropna()
 spotifydf = spotify.drop(columns= ['id',
                                    'duration_ms'])
 
+#%%
+spotifydf.info()
+
 #%%[markdown]
 # Answering the questions
 #
@@ -129,12 +132,12 @@ fig, ax = plt.subplots(figsize = (15,15))
 
 mask1 = np.triu(np.ones_like(spotifydf.corr(), dtype=np.bool))
 
-spotifydfcorr = spotifydf.corr()
+spotifydfcorr = spotifydf.corr(method='spearman')
 sns.heatmap(spotifydfcorr, 
             annot =True, 
             mask=mask1)
 
-plt.title('Correlation plot of Spotifydf')
+plt.title('Spearman Correlation Heatmap of Spotifydf')
 
 #%%
 # Spotifydf at a glance
@@ -150,130 +153,70 @@ popular = spotifydf[spotifydf['popularity'] == 1]
 
 #%%
 # Explicit songs over the years
+fig, axes = plt.subplots(2,3, figsize=(15,10))
+axes[1][2].set_visible(False)
+
+axes[1][0].set_position([0.24,0.125,0.228,0.343])
+axes[1][1].set_position([0.55,0.125,0.228,0.343])
+
 
 sns.lineplot(x = 'year',
              y = 'explicit',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,0])
 
 sns.lineplot(x = 'year',
              y = 'explicit',
-             data= popular)
+             data= popular,
+             ax= axes[0,0])
 
-#%%
 # Danceability songs over the years
 
 sns.lineplot(x = 'year',
              y = 'danceability',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,1])
 
 sns.lineplot(x = 'year',
              y = 'danceability',
-             data= popular)
+             data= popular,
+             ax= axes[0,1])
 
-#%%
 # Energy songs over the years
 
 sns.lineplot(x = 'year',
              y = 'energy',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,2])
 
 sns.lineplot(x = 'year',
              y = 'energy',
-             data= popular)
+             data= popular,
+             ax= axes[0,2])
 
-#%%
 # loudness songs over the years
 
 sns.lineplot(x = 'year',
              y = 'loudness',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[1,0])
 
 sns.lineplot(x = 'year',
              y = 'loudness',
-             data= popular)
+             data= popular,
+             ax= axes[1,0])
 
-#%%
 # Accousticness songs over the years
 
 sns.lineplot(x = 'year',
              y = 'acousticness',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[1,1])
 
 sns.lineplot(x = 'year',
              y = 'acousticness',
-             data= popular)
-
-#%%
-# EDA on Energy
-
-#energy vs popularity, explpicit, danceability, liveness, year
-#q1 interpreatation of explicit&popularity, does 0= True or False
-#idea1 group multiple year into one bracket and compare energy by decade
-#q2 what is mode
-#
-
-
-
-
-import plotly.express as px
-#%%
-fig=px.histogram(spotifydf,x="energy")
-fig.show()
-
-#%%
-# sns.displot(spotifydf, x="energy")
-# sns.displot(spotifydf, x="energy",kind="kde")
-# sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
-# sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
-# sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
-# sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
-# sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
-# useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
-
-# sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
-sns.regplot(data=spotifydf,y='loudness',x='energy',color='c').set(title='Loudness vs Energy')
-
-
-#%%
-spotifydf.columns
-#%%
-spotifydf["artists"].describe()
-#%%
-spotifydf["mode"].unique()
-a=spotifydf.columns
-#%%
-k=0
-for i in spotifydf.columns:
-    if k>6:
-        break
-    k+=1
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
-for i in a[6:13]:
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
-for i in a[13:19]:
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
-#%%
-
-#%%
-
-
-#%%
-
-
-
-#%%
-
-
-#%%
-
-
-#%%
+             data= popular,
+             ax= axes[1,1])
 
 
 #%%
@@ -340,27 +283,109 @@ plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
 
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-
+plt.title('ROC: Logistic Regression')
 plt.legend()
 
 #%%
 #Tentative: Statsmodel
 
-# smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True)
+smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True)
 
-# from statsmodels.formula.api import glm
+from statsmodels.formula.api import glm
 
-# modelGLM = glm(formula= 'popularity ~ danceability + energy', data= smotelogistic, family=sm.families.Binomial())
+modelGLM = glm(formula= 'popularity ~ danceability + energy + C(explicit) + loudness + acousticness + year', data= smotelogistic, family=sm.families.Binomial())
 
-# modelGLM = modelGLM.fit()
+modelGLM = modelGLM.fit()
 
-# print( modelGLM.summary())
+print( modelGLM.summary())
 
 #%%
-sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2").set(title='Countplot for popularity with SMOTE')
+fig, ax = plt.subplots(figsize = (7,7))
+
+sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2", ax=ax).set(title='Countplot for popularity with SMOTE')
+
+ax.set_xticklabels(['Not popular', 'Popular'])
+
 
 #%%
 # K-Nearest Neighbors 
+# import packages
+import sklearn as sk
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+import seaborn as sns
+
+#%%
+#Data pre-processing
+X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+y=spotifydf["popularity"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
+
+#%%
+#modelling
+
+# knn = KNeighborsClassifier(n_neighbors = 3)
+# knn.fit(X_train,y_train)
+# knn.predict(X_test)
+# knn.score(X_test, y_test)
+
+b={}
+for i in range(1,21):
+    knn = KNeighborsClassifier(n_neighbors = i)
+    knn.fit(X_train,y_train)
+    knn.predict(X_test)
+    print(i)
+    print(knn.score(X_test, y_test))
+    b.update({i:knn.score(X_test, y_test)})
+    print("   ")
+#%%
+a=pd.DataFrame.from_dict(b)
+#%%
+sns.lineplot(a)
+
+
+# knn_cv = KNeighborsClassifier(n_neighbors=3)
+# cv_scores = cross_val_score(knn_cv, X, y, cv=5)
+# print(cv_scores)
+# print(‘cv_scores mean:{}’.format(np.mean(cv_scores)))
+
+
+# knn2 = KNeighborsClassifier()
+# param_grid = {‘n_neighbors’: np.arange(1, 25)}
+# knn_gscv = GridSearchCV(knn2, param_grid, cv=5)
+# knn_gscv.fit(X, y)
+# print(knn_gscv.best_params_)
+# print(knn_gscv.best_score_)
+
+
+#%%
+#Number of songs released in per year
+
+spotifydf["year"] = spotifydf["release_date"].dt.year
+sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'blue').set(title="Number of song per year")
+
+#%%
+#Most popular songs
+most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
+most_popularity.head(10)
+
+
+lead_songs = most_popularity[['name', 'popularity']].head(20)
+lead_songs
+#%%
+fig, ax = plt.subplots(figsize = (10, 10))
+
+ax = sns.barplot(x = lead_songs.popularity, y = lead_songs.name, color = 'lightgreen', orient = 'h', edgecolor = 'black', ax = ax)
+
+ax.set_xlabel('Popularity', c ='red', fontsize = 12, weight = 'bold')
+ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
+ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
+
+plt.show()
+
 
 #%%
 # Random Forest 
