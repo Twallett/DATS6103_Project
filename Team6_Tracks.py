@@ -218,6 +218,61 @@ sns.lineplot(x = 'year',
              data= popular,
              ax= axes[1,1])
 
+#%%
+# EDA on Energy
+
+#energy vs popularity, explpicit, danceability, liveness, year
+#q1 interpreatation of explicit&popularity, does 0= True or False
+#idea1 group multiple year into one bracket and compare energy by decade
+#q2 what is mode
+#
+
+
+
+
+import plotly.express as px
+#%%
+fig=px.histogram(spotifydf,x="energy")
+fig.show()
+
+#%%
+# sns.displot(spotifydf, x="energy")
+# sns.displot(spotifydf, x="energy",kind="kde")
+# sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
+# sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
+# sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
+# sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
+# sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
+# useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
+
+# sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
+sns.regplot(data=spotifydf,y='loudness',x='energy',color='c').set(title='Loudness vs Energy')
+
+
+#%%
+spotifydf.columns
+#%%
+spotifydf["artists"].describe()
+#%%
+spotifydf["mode"].unique()
+a=spotifydf.columns
+#%%
+k=0
+for i in spotifydf.columns:
+    if k>6:
+        break
+    k+=1
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
+for i in a[6:13]:
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
+for i in a[13:19]:
+    print(i)
+    print(spotifydf[i].unique())
+    print(" ")
 
 #%%
 # (Modeling) SMART Question: Based on the features, will a song be popular or not?
