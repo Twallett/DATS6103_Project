@@ -78,7 +78,7 @@ spotify.dropna(axis=0,inplace=True)
 # %%
 #Reformatting variables of interest
 
-#Popularity to nominal ordinal variable: 1- 0 to 33, 2- 33-66 and 3- 66-100 
+#Popularity to nominal ordinal variable: 0-Not popular 0-50, 1-Popular 50-100
 
 sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Countplot for popularity')
 
@@ -119,6 +119,9 @@ spotify = spotify.dropna()
 spotifydf = spotify.drop(columns= ['id',
                                    'duration_ms'])
 
+#%%
+spotifydf.info()
+
 #%%[markdown]
 # Answering the questions
 #
@@ -129,12 +132,12 @@ fig, ax = plt.subplots(figsize = (15,15))
 
 mask1 = np.triu(np.ones_like(spotifydf.corr(), dtype=np.bool))
 
-spotifydfcorr = spotifydf.corr()
+spotifydfcorr = spotifydf.corr(method='spearman')
 sns.heatmap(spotifydfcorr, 
             annot =True, 
             mask=mask1)
 
-plt.title('Correlation plot of Spotifydf')
+plt.title('Spearman Correlation Heatmap of Spotifydf')
 
 #%%
 # Spotifydf at a glance
@@ -150,59 +153,73 @@ popular = spotifydf[spotifydf['popularity'] == 1]
 
 #%%
 # Explicit songs over the years
+fig, axes = plt.subplots(2,3, figsize=(15,10))
+axes[1][2].set_visible(False)
+
+axes[1][0].set_position([0.24,0.125,0.228,0.343])
+axes[1][1].set_position([0.55,0.125,0.228,0.343])
+
 
 sns.lineplot(x = 'year',
              y = 'explicit',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,0])
 
 sns.lineplot(x = 'year',
              y = 'explicit',
-             data= popular)
+             data= popular,
+             ax= axes[0,0])
 
-#%%
 # Danceability songs over the years
 
 sns.lineplot(x = 'year',
              y = 'danceability',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,1])
 
 sns.lineplot(x = 'year',
              y = 'danceability',
-             data= popular)
+             data= popular,
+             ax= axes[0,1])
 
-#%%
 # Energy songs over the years
 
 sns.lineplot(x = 'year',
              y = 'energy',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[0,2])
 
 sns.lineplot(x = 'year',
              y = 'energy',
-             data= popular)
+             data= popular,
+             ax= axes[0,2])
 
-#%%
 # loudness songs over the years
 
 sns.lineplot(x = 'year',
              y = 'loudness',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[1,0])
 
 sns.lineplot(x = 'year',
              y = 'loudness',
-             data= popular)
+             data= popular,
+             ax= axes[1,0])
 
-#%%
 # Accousticness songs over the years
 
 sns.lineplot(x = 'year',
              y = 'acousticness',
-             data= unpopular)
+             data= unpopular,
+             ax= axes[1,1])
 
 sns.lineplot(x = 'year',
              y = 'acousticness',
-             data= popular)
+             data= popular,
+             ax= axes[1,1])
 
+fig.suptitle('Popular/Unpopular tracks over time.')
+fig.legend()
 
 #%%
 # (Modeling) SMART Question: Based on the features, will a song be popular or not?
@@ -268,24 +285,29 @@ plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
 
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-
+plt.title('ROC: Logistic Regression')
 plt.legend()
 
 #%%
 #Tentative: Statsmodel
 
-# smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True)
+smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True)
 
-# from statsmodels.formula.api import glm
+from statsmodels.formula.api import glm
 
-# modelGLM = glm(formula= 'popularity ~ danceability + energy', data= smotelogistic, family=sm.families.Binomial())
+modelGLM = glm(formula= 'popularity ~ danceability + energy + C(explicit) + loudness + acousticness + year', data= smotelogistic, family=sm.families.Binomial())
 
-# modelGLM = modelGLM.fit()
+modelGLM = modelGLM.fit()
 
-# print( modelGLM.summary())
+print( modelGLM.summary())
 
 #%%
-sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2").set(title='Countplot for popularity with SMOTE')
+fig, ax = plt.subplots(figsize = (7,7))
+
+sns.countplot(x = 'popularity', data = y_train_res,palette = "Set2", ax=ax).set(title='Countplot for popularity with SMOTE')
+
+ax.set_xticklabels(['Not popular', 'Popular'])
+
 
 #%%
 # K-Nearest Neighbors 
