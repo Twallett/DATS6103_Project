@@ -468,7 +468,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 
 #%%
-
+# Feature Selection
 sel = SelectFromModel(RandomForestClassifier(n_estimators = 100))
 sel.fit(X_train, y_train)
 
