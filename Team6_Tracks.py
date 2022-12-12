@@ -493,7 +493,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 Knn_Accuracy=pd.DataFrame(columns=['K', 'Accuracy'])
 for i in range(1,21):
      knn = KNeighborsClassifier(n_neighbors = i)
-     knn.fit(X_train,y_train)
+     knn.fit(x_train_res,y_train_res)
      knn.predict(X_test)
      print(i)
      print(knn.score(X_test, y_test))
@@ -511,7 +511,10 @@ plt.title("Accuracy with different K")
 plt.xticks(range(0, 21))
 plt.show() 
 
-
+#%%
+knn_cv = KNeighborsClassifier(n_neighbors=9)
+cv_scores = cross_val_score(knn_cv, X_train, y_train, cv=5)
+knn_cv.fit(X_train,y_train)
 
 
 #%%
@@ -524,7 +527,7 @@ smo = SMOTE(random_state = 2)
 x_train_res, y_train_res = smo.fit_resample(X_train, y_train)
 #%%
 
-knn_cv = KNeighborsClassifier(n_neighbors=11)
+knn_cv = KNeighborsClassifier(n_neighbors=9)
 cv_scores = cross_val_score(knn_cv, x_train_res, y_train_res, cv=5)
 knn_cv.fit(x_train_res,y_train_res)
 #%%
@@ -648,6 +651,21 @@ ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
 ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
 
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #%%
