@@ -405,41 +405,66 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # knn.predict(X_test)
 # knn.score(X_test, y_test)
 
-b=pd.DataFrame(columns=['K', 'Accuracy'])
+Knn_Accuracy=pd.DataFrame(columns=['K', 'Accuracy'])
 for i in range(1,21):
-    knn = KNeighborsClassifier(n_neighbors = i)
-    knn.fit(X_train,y_train)
-    knn.predict(X_test)
-    print(i)
-    print(knn.score(X_test, y_test))
-    temp=knn.score(X_test, y_test)
-    #new_row = {'K':i, 'Accuracy':temp}
-    #b = b.append(new_row, ignore_index=True)
-    b.loc[i]=[i,temp]
-    #b.update({i:knn.score(X_test, y_test)})
-    print("   ")
-#%%
-#a=pd.DataFrame.from_dict(b)
+     knn = KNeighborsClassifier(n_neighbors = i)
+     knn.fit(X_train,y_train)
+     knn.predict(X_test)
+     print(i)
+     print(knn.score(X_test, y_test))
+     temp=knn.score(X_test, y_test)
+     Knn_Accuracy.loc[i]=[i,temp]
+     print("   ")
+
 
 #%%
 import math
-
-#%%
-plt.plot(b['K'], b['Accuracy'])
+plt.plot(Knn_Accuracy['K'], Knn_Accuracy['Accuracy'])
+plt.xlabel('K') 
+plt.ylabel('Accuracy') 
+plt.title("Accuracy with different K")
 plt.xticks(range(0, 21))
+plt.show() 
+
+
 
 
 #%%
-#
-# print range(math.floor(min(y)), math.ceil(max(y))+1)
-b = b.astype({"K":'int'})
-sns.lineplot(data=b, x="K", y="Accuracy")
+#SM?OTE
 
+X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+y=spotifydf["popularity"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
+smo = SMOTE(random_state = 2)
+x_train_res, y_train_res = smo.fit_resample(X_train, y_train)
+#%%
 
-# knn_cv = KNeighborsClassifier(n_neighbors=3)
-# cv_scores = cross_val_score(knn_cv, X, y, cv=5)
-# print(cv_scores)
+knn_cv = KNeighborsClassifier(n_neighbors=11)
+cv_scores = cross_val_score(knn_cv, x_train_res, y_train_res, cv=5)
+knn_cv.fit(x_train_res,y_train_res)
+#%%
+y_pred=knn_cv.predict(X_test)
+print(cv_scores)
 # print(‘cv_scores mean:{}’.format(np.mean(cv_scores)))
+
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(y_test, y_pred))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(y_test,y_pred))
+print(" ")
+print("Precision Score")
+print(precision_score(y_test, y_pred))
+print(" ")
+print("Recall Score")
+print(recall_score(y_test, y_pred))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(y_test, y_pred))
 
 
 # knn2 = KNeighborsClassifier()
@@ -449,12 +474,76 @@ sns.lineplot(data=b, x="K", y="Accuracy")
 # print(knn_gscv.best_params_)
 # print(knn_gscv.best_score_)
 
+#%%
+lr_fpr, lr_tpr, _ = roc_curve(y_test, _train)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='KNN')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: KNN')
+plt.legend()
+# Visualization of Result
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+ax = sns.distplot(y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_train, hist=False, color="b", label="Fitted Values" , ax=ax)
+plt.title('Actual vs Fitted Values for Popularity')
+plt.show()
+plt.close()
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(y_test, y_train))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(y_test,y_train))
+print(" ")
+print("Precision Score")
+print(precision_score(y_test, y_train))
+print(" ")
+print("Recall Score")
+print(recall_score(y_test, y_train))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(y_test, y_train))
+
+#%%
+#Data Visualization
+# display = PrecisionRecallDisplay.from_estimator(
+#     rf_best, X_test, Y_test)
+# _ = display.ax_.set_title("2-class Precision-Recall curve")
+
+# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
+# auc = metrics.roc_auc_score(Y_test, y_pred)
+# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+# plt.legend(loc=4)
+# plt.show()
+
+y_pred=rf_best.predict(X_test)
+
+lr_fpr, lr_tpr, _ = roc_curve(y_test, y_train)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='KNN')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: Random Forest')
+plt.legend()
+# Visualization of Result
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+ax = sns.distplot(y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_train, hist=False, color="b", label="Fitted Values" , ax=ax)
+plt.title('Actual vs Fitted Values for Price')
+plt.show()
+plt.close()
 
 #%%
 #Number of songs released in per year
 
 spotifydf["year"] = spotifydf["release_date"].dt.year
-sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'blue').set(title="Number of song per year")
+sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'green').set(title="Number of song per year")
 
 #%%
 #Most popular songs
