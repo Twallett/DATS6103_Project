@@ -245,11 +245,15 @@ sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
 # useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
 
 #%%
+sns.boxplot(spotifydf, x="danceability")
+#%%
+sns.histplot(spotifydf, x="energy",y="loudness",palette="bright",hue="popularity",kde=True)
+#%%
 #'danceability', 'energy', 'loudness', 'speechiness', 
 # 'acousticness','liveness',
 # 'valence', 'tempo', 'duration_min', 'year'
 
-sns.displot(spotifydf, x="danceability",hue="popularity",kde=True,multiple="stack")
+sns.displot(spotifydf, x="danceability",y="loudness",hue="popularity",palette="bright")
 #%%
 sns.histplot(spotifydf, x="loudness",hue="popularity",kde=True,multiple="stack")
 #%%
@@ -610,7 +614,7 @@ plt.close()
 #%%
 # Feature Selection
 sel = SelectFromModel(RandomForestClassifier(n_estimators = 100))
-sel.fit(X_train, y_train)
+sel.fit(X_train, Y_train)
 
 print(sel.get_support())
 
@@ -619,6 +623,7 @@ print(len(selected_feat))
 
 print(selected_feat)
 
+#%%
 # pd.series(sel.estimator_,feature_importances_,.ravel()).hist()
 
 
