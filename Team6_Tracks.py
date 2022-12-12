@@ -85,6 +85,34 @@ sns.countplot(x = 'popularity', data = spotify,palette = "Set2").set(title='Coun
 spotify = spotify[spotify['popularity'] != 0]
 
 #%%
+#EDA on popular songs 
+
+x = spotify[spotify['popularity'] > 90]
+
+x = x[['name', 'artists', 'popularity']].sort_values('popularity', ascending=False)
+
+x.head(10)
+
+#%%
+#EDA on popular songs -> danceability
+
+x = spotify[spotify['popularity'] > 90]
+
+x = x[['name', 'artists', 'popularity','danceability']].sort_values('popularity', ascending=False).sort_values('danceability', ascending=False)
+
+x.head(10)
+
+#%%
+#EDA on popular songs -> energy
+
+x = spotify[spotify['popularity'] > 90]
+
+x = x[['name', 'artists', 'popularity','energy']].sort_values('popularity', ascending=False).sort_values('energy', ascending=True)
+
+x.head(10)
+
+
+#%%
 #Dropping songs with 0 popularity given that it will skew the results later on...
 
 spotify['popularity'] = spotify['popularity'].map(lambda x: 0 if x <= 50 else 1 if x <= 100 else np.nan)
@@ -153,69 +181,48 @@ popular = spotifydf[spotifydf['popularity'] == 1]
 
 #%%
 # Explicit songs over the years
-fig, axes = plt.subplots(2,3, figsize=(15,10))
-axes[1][2].set_visible(False)
+fig, axes = plt.subplots(2,2, figsize=(15,10))
 
-axes[1][0].set_position([0.24,0.125,0.228,0.343])
-axes[1][1].set_position([0.55,0.125,0.228,0.343])
-
-sns.lineplot(x = 'year',
+ax1 = sns.lineplot(x = 'year',
              y = 'explicit',
-             data= unpopular,
-             ax= axes[0,0])
-
-sns.lineplot(x = 'year',
-             y = 'explicit',
-             data= popular,
+             data= spotifydf,
+             hue= 'popularity',
+             legend=False,
              ax= axes[0,0])
 
 # Danceability songs over the years
 
-sns.lineplot(x = 'year',
+ax2 = sns.lineplot(x = 'year',
              y = 'danceability',
-             data= unpopular,
+             hue= 'popularity',
+             legend=False,
+             data= spotifydf,
              ax= axes[0,1])
-
-sns.lineplot(x = 'year',
-             y = 'danceability',
-             data= popular,
-             ax= axes[0,1])
-
-# Energy songs over the years
-
-sns.lineplot(x = 'year',
-             y = 'energy',
-             data= unpopular,
-             ax= axes[0,2])
-
-sns.lineplot(x = 'year',
-             y = 'energy',
-             data= popular,
-             ax= axes[0,2])
 
 # loudness songs over the years
 
-sns.lineplot(x = 'year',
+ax4 = sns.lineplot(x = 'year',
              y = 'loudness',
-             data= unpopular,
-             ax= axes[1,0])
-
-sns.lineplot(x = 'year',
-             y = 'loudness',
-             data= popular,
+             hue= 'popularity',
+             legend=False,
+             data= spotifydf,
              ax= axes[1,0])
 
 # Accousticness songs over the years
 
-sns.lineplot(x = 'year',
+ax5 = sns.lineplot(x = 'year',
              y = 'acousticness',
-             data= unpopular,
+             hue= 'popularity',
+             legend=False,
+             data= spotifydf,
              ax= axes[1,1])
 
-sns.lineplot(x = 'year',
-             y = 'acousticness',
-             data= popular,
-             ax= axes[1,1])
+ax1.title.set_text('Explicit vs Year')
+ax2.title.set_text('Danceability vs Year')
+ax4.title.set_text('Loudness vs Year')
+ax5.title.set_text('Acousticness vs Year')
+
+fig.legend(loc = (0.89,0.5), labels = ['Not popular', 'NP 95% Conf. Int.','Popular','P 95% Conf. Int.'])
 
 #%%
 # EDA on Energy
@@ -225,9 +232,6 @@ sns.lineplot(x = 'year',
 #idea1 group multiple year into one bracket and compare energy by decade
 #q2 what is mode
 #
-
-
-
 
 import plotly.express as px
 #%%
@@ -240,29 +244,110 @@ fig.show()
 # sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
 # sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
 # sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
-sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
 # sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
 # useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
+
+sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
 
 #%%
 #'danceability', 'energy', 'loudness', 'speechiness', 
 # 'acousticness','liveness',
 # 'valence', 'tempo', 'duration_min', 'year'
 
-sns.displot(spotifydf, x="danceability",hue="popularity",kde=True,multiple="stack")
+# Explicit songs over the years
+fig, axes = plt.subplots(2,3, figsize=(15,10))
+axes[1][2].set_visible(False)
+
+axes[1][0].set_position([0.24,0.125,0.228,0.343])
+axes[1][1].set_position([0.55,0.125,0.228,0.343])
+
+
+ax1 = sns.histplot(spotifydf, 
+            x="explicit",
+            hue="popularity",
+            kde=True,
+            multiple="stack",
+            legend= False,
+            ax= axes[0,0])
+
+ax2 = sns.histplot(spotifydf, 
+            x="danceability",
+            hue="popularity",
+            kde=True,
+            multiple="stack",
+            legend= False,
+            ax= axes[0,1])
+
+ax4 = sns.histplot(spotifydf, 
+             x="loudness",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[0,2])
+
+ax5 = sns.histplot(spotifydf, 
+             x="acousticness",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[1,0])
+
+ax6 = sns.histplot(spotifydf, 
+             x="year",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[1,1])
+
+ax1.title.set_text('Histplot Explicit')
+ax2.title.set_text('Histplot Danceability')
+ax4.title.set_text('Histplot Loudness')
+ax5.title.set_text('Histplot Acousticness')
+ax6.title.set_text('Histplot Year')
+
+fig.legend(loc = 'right', labels = ['Not popular','Popular'])
+
+
 #%%
-sns.histplot(spotifydf, x="loudness",hue="popularity",kde=True,multiple="stack")
+#Not from correlation matrix
+
+sns.histplot(spotifydf, 
+             x="speechiness",
+             hue="popularity",
+             kde=True,
+             multiple="stack")
+
 #%%
-sns.histplot(spotifydf, x="speechiness",hue="popularity",kde=True,multiple="stack")
+sns.histplot(spotifydf, 
+             x="liveness",
+             hue="popularity",
+             kde=True,
+             multiple="stack")
+
 #%%
-sns.histplot(spotifydf, x="acousticness",hue="popularity",kde=True,multiple="stack")
+sns.histplot(spotifydf, 
+             x="valence",
+             hue="popularity",
+             kde=True,
+             multiple="stack")
+
 #%%
-sns.histplot(spotifydf, x="liveness",hue="popularity",kde=True,multiple="stack")
+sns.histplot(spotifydf, 
+             x="duration_min",
+             hue="popularity",
+             kde=True,
+             multiple="stack")
+
 #%%
-sns.histplot(spotifydf, x="valence",hue="popularity",kde=True,multiple="stack")
-#%%
-sns.histplot(spotifydf, x="duration_min",hue="popularity",kde=True,multiple="stack")
-#%%
+sns.histplot(spotifydf, 
+             x="speechiness",
+             hue="popularity",
+             kde=True,
+             multiple="stack")
+
 # sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
 sns.regplot(data=spotifydf,y='popularity',x='energy',color='c').set(title='Loudness vs Energy')
 
@@ -292,6 +377,7 @@ for i in a[13:19]:
     print(spotifydf[i].unique())
     print(" ")
 
+
 #%%
 # (Modeling) SMART Question: Based on the features, will a song be popular or not?
 
@@ -300,7 +386,6 @@ for i in a[13:19]:
 
 x_spotifydf = spotifydf[['explicit',
                          'danceability',
-                         'energy',
                          'loudness',
                          'acousticness',
                          'year']]
@@ -547,10 +632,10 @@ sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "
 
 #%%
 #Most popular songs
-most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
+most_popularity = spotifydf.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
 most_popularity.head(10)
 
-
+#%%
 lead_songs = most_popularity[['name', 'popularity']].head(20)
 lead_songs
 #%%
