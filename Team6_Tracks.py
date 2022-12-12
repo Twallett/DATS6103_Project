@@ -386,14 +386,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # knn.predict(X_test)
 # knn.score(X_test, y_test)
 
-b=pd.DataFrame(columns=['K', 'Accuracy'],dtype=['int', 'float'])
-for i in range(1,5):
+b=pd.DataFrame(columns=['K', 'Accuracy'])
+for i in range(1,21):
     knn = KNeighborsClassifier(n_neighbors = i)
     knn.fit(X_train,y_train)
     knn.predict(X_test)
     print(i)
     print(knn.score(X_test, y_test))
     temp=knn.score(X_test, y_test)
+    #new_row = {'K':i, 'Accuracy':temp}
+    #b = b.append(new_row, ignore_index=True)
     b.loc[i]=[i,temp]
     #b.update({i:knn.score(X_test, y_test)})
     print("   ")
@@ -401,6 +403,17 @@ for i in range(1,5):
 #a=pd.DataFrame.from_dict(b)
 
 #%%
+import math
+
+#%%
+plt.plot(b['K'], b['Accuracy'])
+plt.xticks(range(0, 21))
+
+
+#%%
+#
+# print range(math.floor(min(y)), math.ceil(max(y))+1)
+b = b.astype({"K":'int'})
 sns.lineplot(data=b, x="K", y="Accuracy")
 
 
