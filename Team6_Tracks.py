@@ -226,9 +226,6 @@ sns.lineplot(x = 'year',
 #q2 what is mode
 #
 
-
-
-
 import plotly.express as px
 #%%
 fig=px.histogram(spotifydf,x="energy")
@@ -458,10 +455,10 @@ sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "
 
 #%%
 #Most popular songs
-most_popularity = spotify.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
+most_popularity = spotifydf.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
 most_popularity.head(10)
 
-
+#%%
 lead_songs = most_popularity[['name', 'popularity']].head(20)
 lead_songs
 #%%
