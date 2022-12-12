@@ -141,7 +141,7 @@ plt.title('Spearman Correlation Heatmap of Spotifydf')
 
 #%%
 # Spotifydf at a glance
-spotifydf.hist(bins = 20, color = 'orange', figsize = (20, 14))
+spotifydf.hist(bins = 20, color = 'lightgreen', figsize = (20, 14))
 
 
 #%%
@@ -158,7 +158,6 @@ axes[1][2].set_visible(False)
 
 axes[1][0].set_position([0.24,0.125,0.228,0.343])
 axes[1][1].set_position([0.55,0.125,0.228,0.343])
-
 
 sns.lineplot(x = 'year',
              y = 'explicit',
@@ -387,19 +386,22 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # knn.predict(X_test)
 # knn.score(X_test, y_test)
 
-b={}
-for i in range(1,21):
+b=pd.DataFrame(columns=['K', 'Accuracy'],dtype=['int', 'float'])
+for i in range(1,5):
     knn = KNeighborsClassifier(n_neighbors = i)
     knn.fit(X_train,y_train)
     knn.predict(X_test)
     print(i)
     print(knn.score(X_test, y_test))
-    b.update({i:knn.score(X_test, y_test)})
+    temp=knn.score(X_test, y_test)
+    b.loc[i]=[i,temp]
+    #b.update({i:knn.score(X_test, y_test)})
     print("   ")
 #%%
-a=pd.DataFrame.from_dict(b)
+#a=pd.DataFrame.from_dict(b)
+
 #%%
-sns.lineplot(a)
+sns.lineplot(data=b, x="K", y="Accuracy")
 
 
 # knn_cv = KNeighborsClassifier(n_neighbors=3)
