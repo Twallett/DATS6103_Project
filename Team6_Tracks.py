@@ -241,12 +241,31 @@ fig.show()
 # sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
 # sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
 # sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
-# sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
+sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
 # sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
 # useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
 
+#%%
+#'danceability', 'energy', 'loudness', 'speechiness', 
+# 'acousticness','liveness',
+# 'valence', 'tempo', 'duration_min', 'year'
+
+sns.displot(spotifydf, x="danceability",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="loudness",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="speechiness",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="acousticness",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="liveness",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="valence",hue="popularity",kde=True,multiple="stack")
+#%%
+sns.histplot(spotifydf, x="duration_min",hue="popularity",kde=True,multiple="stack")
+#%%
 # sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
-sns.regplot(data=spotifydf,y='loudness',x='energy',color='c').set(title='Loudness vs Energy')
+sns.regplot(data=spotifydf,y='popularity',x='energy',color='c').set(title='Loudness vs Energy')
 
 
 #%%
@@ -466,6 +485,125 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
+from sklearn.metrics import classification_report
+from sklearn.metrics import PrecisionRecallDisplay
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
+import matplotlib.pyplot as plt
+from sklearn import metrics
+
+
+#%%
+# RF without feature selection
+rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 100, max_depth=5)
+rf_best.fit(X_train, Y_train)
+y_pred=rf_best.predict(X_test)
+#%%
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
+plt.title('Actual vs Fitted Values for Price')
+plt.show()
+plt.close()
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(Y_test, y_pred))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(Y_test,y_pred))
+print(" ")
+print("Precision Score")
+print(precision_score(Y_test, y_pred))
+print(" ")
+print("Recall Score")
+print(recall_score(Y_test, y_pred))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(Y_test, y_pred))
+
+#%%
+#Data Visualization
+# display = PrecisionRecallDisplay.from_estimator(
+#     rf_best, X_test, Y_test)
+# _ = display.ax_.set_title("2-class Precision-Recall curve")
+
+# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
+# auc = metrics.roc_auc_score(Y_test, y_pred)
+# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+# plt.legend(loc=4)
+# plt.show()
+
+lr_fpr, lr_tpr, _ = roc_curve(Y_test, y_pred)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: Random Forest')
+plt.legend()
+
+
+#%% 
+#Using SMote, RF_without FE
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf, y_spotifydf, test_size= 0.2, random_state= 321)
+smo = SMOTE(random_state = 2)
+x_train_res, y_train_res = smo.fit_resample(X_train, Y_train)
+
+#%%
+rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 100, max_depth=5)
+rf_best.fit(x_train_res, y_train_res)
+y_pred=rf_best.predict(X_test)
+
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(Y_test, y_pred))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(Y_test,y_pred))
+print(" ")
+print("Precision Score")
+print(precision_score(Y_test, y_pred))
+print(" ")
+print("Recall Score")
+print(recall_score(Y_test, y_pred))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(Y_test, y_pred))
+
+#%%
+#Data Visualization
+# display = PrecisionRecallDisplay.from_estimator(
+#     rf_best, X_test, Y_test)
+# _ = display.ax_.set_title("2-class Precision-Recall curve")
+
+# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
+# auc = metrics.roc_auc_score(Y_test, y_pred)
+# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+# plt.legend(loc=4)
+# plt.show()
+
+lr_fpr, lr_tpr, _ = roc_curve(Y_test, y_pred)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: Random Forest')
+plt.legend()
+
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
+plt.title('Actual vs Fitted Values for Price')
+plt.show()
+plt.close()
 
 #%%
 # Feature Selection
@@ -484,11 +622,11 @@ print(selected_feat)
 
 #%%
 #Based on Feature selection creating new training data
-x_spotifydf = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
 
-y_spotifydf = spotifydf[['popularity']]
+y_spotifydf1 = spotifydf[['popularity']]
 
-X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf, y_spotifydf, test_size= 0.2, random_state= 321)
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf1, y_spotifydf1, test_size= 0.2, random_state= 321)
 
 # %%
 #RF using GridSearchCV
@@ -514,24 +652,142 @@ print(CV_rfc.best_params_)
 
 #%%
 #Training RF on best parameters
-rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 200, max_depth=8, criterion='gini')
+rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 200, max_depth=8, criterion='gini', bootstrap=True, oob_score=True)
 rf_best.fit(X_train, Y_train)
 y_pred=rf_best.predict(X_test)
 print(accuracy_score(Y_test,y_pred))
 
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(Y_test, y_pred))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(Y_test,y_pred))
+print(" ")
+print("Precision Score")
+print(precision_score(Y_test, y_pred))
+print(" ")
+print("Recall Score")
+print(recall_score(Y_test, y_pred))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(Y_test, y_pred))
 
 #%%
+#Data Visualization
+# display = PrecisionRecallDisplay.from_estimator(
+#     rf_best, X_test, Y_test)
+# _ = display.ax_.set_title("2-class Precision-Recall curve")
+
+# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
+# auc = metrics.roc_auc_score(Y_test, y_pred)
+# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+# plt.legend(loc=4)
+# plt.show()
+
+lr_fpr, lr_tpr, _ = roc_curve(Y_test, y_pred)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: Random Forest')
+plt.legend()
 # Visualization of Result
 import seaborn as sns
 plt.figure(figsize=(5, 7))
-
-
 ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
 sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
-
-
 plt.title('Actual vs Fitted Values for Price')
-
-
 plt.show()
 plt.close()
+# %%
+# SMOTE_RF_with FE
+x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+y_spotifydf1 = spotifydf[['popularity']]
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf1, y_spotifydf1, test_size= 0.2, random_state= 321)
+smo = SMOTE(random_state = 2)
+x_train_res, y_train_res = smo.fit_resample(X_train, Y_train)
+
+rf_best = RandomForestClassifier(random_state=42, max_features='auto', n_estimators= 200, max_depth=8, criterion='gini', bootstrap=True, oob_score=True)
+rf_best.fit(x_train_res, y_train_res)
+y_pred=rf_best.predict(X_test)
+print(accuracy_score(Y_test,y_pred))
+
+#%%
+#Accuracy
+
+print(" ")
+print("The Classification Report")
+print(classification_report(Y_test, y_pred))
+print(" ")
+print("Accuracy is ")
+print(accuracy_score(Y_test,y_pred))
+print(" ")
+print("Precision Score")
+print(precision_score(Y_test, y_pred))
+print(" ")
+print("Recall Score")
+print(recall_score(Y_test, y_pred))
+print(" ")
+print("ROC_AUC Score")
+print(roc_auc_score(Y_test, y_pred))
+
+#%%
+#Data Visualization
+# display = PrecisionRecallDisplay.from_estimator(
+#     rf_best, X_test, Y_test)
+# _ = display.ax_.set_title("2-class Precision-Recall curve")
+
+# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
+# auc = metrics.roc_auc_score(Y_test, y_pred)
+# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+# plt.legend(loc=4)
+# plt.show()
+
+lr_fpr, lr_tpr, _ = roc_curve(Y_test, y_pred)
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC: Random Forest')
+plt.legend()
+# Visualization of Result
+import seaborn as sns
+plt.figure(figsize=(5, 7))
+ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
+sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
+plt.title('Actual vs Fitted Values for Price')
+plt.show()
+plt.close()
+
+#%%
+x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+y_spotifydf1 = spotifydf[['popularity']]
+X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf1, y_spotifydf1, test_size= 0.2, random_state= 321)
+smo = SMOTE(random_state = 2)
+x_train_res, y_train_res = smo.fit_resample(X_train, Y_train)
+# %%
+#GridsearchCV
+rfc=RandomForestClassifier(random_state=42)
+
+param_grid = { 
+    'n_estimators': [100,200,300,400,500],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    'max_depth' : [4,5,6,7,8,10,14,20],
+    'criterion' :['gini', 'entropy',"log_loss"],
+    'bootstrap' :[True,False],
+    'oob_score' :[True,False]
+}
+
+CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
+CV_rfc.fit(x_train_res, y_train_res)
+
+
+print(CV_rfc.best_params_)
+
+#%%
+print(10)
+# %%
