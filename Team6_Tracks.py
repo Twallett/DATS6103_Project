@@ -56,6 +56,18 @@ from sklearn.metrics import confusion_matrix
 import statsmodels.api as sm
 from imblearn.over_sampling import SMOTE
 from sklearn.metrics import roc_auc_score, roc_curve
+import sklearn as sk
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+import seaborn as sns
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
+
+
 
 #%%
 #Importing dataset 
@@ -155,7 +167,7 @@ spotifydf.info()
 #
 # (EDA) SMART Question: What factors affect the popularity of a song?
 #
-# Correlation plot to check for linear relationships 
+# Feature Selection: Correlation plot to check for linear relationships 
 fig, ax = plt.subplots(figsize = (15,15))
 
 mask1 = np.triu(np.ones_like(spotifydf.corr(), dtype=np.bool))
@@ -171,13 +183,70 @@ plt.title('Spearman Correlation Heatmap of Spotifydf')
 # Spotifydf at a glance
 spotifydf.hist(bins = 20, color = 'lightgreen', figsize = (20, 14))
 
-
 #%%
 # EDA on popular and unpopular data over the years
 
 unpopular = spotifydf[spotifydf['popularity'] == 0]
 
 popular = spotifydf[spotifydf['popularity'] == 1]
+
+#%%
+
+fig, axes = plt.subplots(2,3, figsize=(15,10))
+axes[1][2].set_visible(False)
+
+axes[1][0].set_position([0.24,0.125,0.228,0.343])
+axes[1][1].set_position([0.55,0.125,0.228,0.343])
+
+
+ax1 = sns.histplot(spotifydf, 
+            x="explicit",
+            hue="popularity",
+            kde=True,
+            multiple="stack",
+            legend= False,
+            ax= axes[0,0])
+
+ax2 = sns.histplot(spotifydf, 
+            x="danceability",
+            hue="popularity",
+            kde=True,
+            multiple="stack",
+            legend= False,
+            ax= axes[0,1])
+
+ax4 = sns.histplot(spotifydf, 
+             x="loudness",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[0,2])
+
+ax5 = sns.histplot(spotifydf, 
+             x="acousticness",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[1,0])
+
+ax6 = sns.histplot(spotifydf, 
+             x="year",
+             hue="popularity",
+             kde=True,
+             multiple="stack",
+             legend= False,
+             ax= axes[1,1])
+
+ax1.title.set_text('Histplot Explicit')
+ax2.title.set_text('Histplot Danceability')
+ax4.title.set_text('Histplot Loudness')
+ax5.title.set_text('Histplot Acousticness')
+ax6.title.set_text('Histplot Year')
+
+fig.legend(loc = 'right', labels = ['Popular','Not popular'])
+
 
 #%%
 # Explicit songs over the years
@@ -225,105 +294,8 @@ ax5.title.set_text('Acousticness vs Year')
 fig.legend(loc = (0.89,0.5), labels = ['Not popular', 'NP 95% Conf. Int.','Popular','P 95% Conf. Int.'])
 
 #%%
-# EDA on Energy
+#Distribution of variables of interest
 
-#energy vs popularity, explpicit, danceability, liveness, year
-#q1 interpreatation of explicit&popularity, does 0= True or False
-#idea1 group multiple year into one bracket and compare energy by decade
-#q2 what is mode
-#
-
-import plotly.express as px
-#%%
-fig=px.histogram(spotifydf,x="energy")
-fig.show()
-
-#%%
-# sns.displot(spotifydf, x="energy")
-# sns.displot(spotifydf, x="energy",kind="kde")
-# sns.displot(spotifydf, x="energy",kind="kde",bw_adjust=0.23)
-# sns.displot(spotifydf, x="energy",hue="explicit",kind="kde",multiple="stack")
-# sns.histplot(spotifydf, x="energy",hue="explicit",kde=True)
-# sns.histplot(spotifydf, x="energy",hue="mode",kde=True)
-# useless: sns.histplot(spotifydf, x="energy",hue="month",kde=True)
-
-sns.histplot(spotifydf, x="energy",hue="popularity",kde=True)
-
-#%%
-sns.boxplot(spotifydf, x="danceability")
-#%%
-sns.histplot(spotifydf, x="energy",y="loudness",palette="bright",hue="popularity",kde=True)
-#%%
-#'danceability', 'energy', 'loudness', 'speechiness', 
-# 'acousticness','liveness',
-# 'valence', 'tempo', 'duration_min', 'year'
-
-sns.displot(spotifydf, x="danceability",hue="popularity",kde=True,multiple="stack")
-#%%
-#Not from correlation matrix
-
-sns.histplot(spotifydf, 
-             x="speechiness",
-             hue="popularity",
-             kde=True,
-             multiple="stack")
-
-#%%
-sns.histplot(spotifydf, 
-             x="liveness",
-             hue="popularity",
-             kde=True,
-             multiple="stack")
-
-#%%
-sns.histplot(spotifydf, 
-             x="valence",
-             hue="popularity",
-             kde=True,
-             multiple="stack")
-
-#%%
-sns.histplot(spotifydf, 
-             x="duration_min",
-             hue="popularity",
-             kde=True,
-             multiple="stack")
-
-#%%
-sns.histplot(spotifydf, 
-             x="speechiness",
-             hue="popularity",
-             kde=True,
-             multiple="stack")
-
-# sns.residplot(data=spotifydf, x="energy", y="danceability", lowess=True, line_kws=dict(color="r"))
-sns.regplot(data=spotifydf,y='popularity',x='energy',color='c').set(title='Loudness vs Energy')
-
-
-#%%
-spotifydf.columns
-#%%
-spotifydf["artists"].describe()
-#%%
-spotifydf["mode"].unique()
-a=spotifydf.columns
-#%%
-k=0
-for i in spotifydf.columns:
-    if k>6:
-        break
-    k+=1
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
-for i in a[6:13]:
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
-for i in a[13:19]:
-    print(i)
-    print(spotifydf[i].unique())
-    print(" ")
 
 
 #%%
@@ -399,7 +371,7 @@ smotelogistic = x_train_res.merge(y_train_res, left_index=True, right_index=True
 
 from statsmodels.formula.api import glm
 
-modelGLM = glm(formula= 'popularity ~ danceability + energy + C(explicit) + loudness + acousticness + year', data= smotelogistic, family=sm.families.Binomial())
+modelGLM = glm(formula= 'popularity ~ danceability + C(explicit) + loudness + acousticness + year', data= smotelogistic, family=sm.families.Binomial())
 
 modelGLM = modelGLM.fit()
 
@@ -415,44 +387,35 @@ ax.set_xticklabels(['Not popular', 'Popular'])
 
 #%%
 # K-Nearest Neighbors 
-# import packages
-import sklearn as sk
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import cross_val_score
-import numpy as np
-from sklearn.model_selection import GridSearchCV
-import seaborn as sns
 
 #%%
 #Data pre-processing
+
 X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+
 y=spotifydf["popularity"]
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
 
 #%%
-#modelling
+#Modelling
 
-# knn = KNeighborsClassifier(n_neighbors = 3)
-# knn.fit(X_train,y_train)
-# knn.predict(X_test)
-# knn.score(X_test, y_test)
-
-Knn_Accuracy=pd.DataFrame(columns=['K', 'Accuracy'])
+b=pd.DataFrame(columns=['K', 'Accuracy'])
 for i in range(1,21):
-     knn = KNeighborsClassifier(n_neighbors = i)
-     knn.fit(x_train_res,y_train_res)
-     knn.predict(X_test)
-     print(i)
-     print(knn.score(X_test, y_test))
-     temp=knn.score(X_test, y_test)
-     Knn_Accuracy.loc[i]=[i,temp]
-     print("   ")
-
+    knn = KNeighborsClassifier(n_neighbors = i)
+    knn.fit(X_train,y_train)
+    knn.predict(X_test)
+    print(i)
+    print(knn.score(X_test, y_test))
+    temp=knn.score(X_test, y_test)
+    #new_row = {'K':i, 'Accuracy':temp}
+    #b = b.append(new_row, ignore_index=True)
+    b.loc[i]=[i,temp]
+    #b.update({i:knn.score(X_test, y_test)})
+    print("   ")
 
 #%%
-import math
-plt.plot(Knn_Accuracy['K'], Knn_Accuracy['Accuracy'])
+plt.plot(b['K'], b['Accuracy'])
 plt.xlabel('K') 
 plt.ylabel('Accuracy') 
 plt.title("Accuracy with different K")
@@ -460,31 +423,18 @@ plt.xticks(range(0, 21))
 plt.show() 
 
 #%%
-knn_cv = KNeighborsClassifier(n_neighbors=9)
-cv_scores = cross_val_score(knn_cv, X_train, y_train, cv=5)
-knn_cv.fit(X_train,y_train)
+#KNN = 9  
 
+knn_best = KNeighborsClassifier(n_neighbors=9)
 
-#%%
-#SM?OTE
+knn_best.fit(X_train, y_train)
 
-X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
-y=spotifydf["popularity"]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
-smo = SMOTE(random_state = 2)
-x_train_res, y_train_res = smo.fit_resample(X_train, y_train)
-#%%
+print(cross_val_score(knn_best, X_train, y_train, cv=10))
 
-knn_cv = KNeighborsClassifier(n_neighbors=9)
-cv_scores = cross_val_score(knn_cv, x_train_res, y_train_res, cv=5)
-knn_cv.fit(x_train_res,y_train_res)
-#%%
-y_pred=knn_cv.predict(X_test)
-print(cv_scores)
-# print(‘cv_scores mean:{}’.format(np.mean(cv_scores)))
+y_pred = knn.predict(X_test)
 
 #%%
-#Accuracy
+#Evaluation Metrics
 
 print(" ")
 print("The Classification Report")
@@ -503,117 +453,48 @@ print("ROC_AUC Score")
 print(roc_auc_score(y_test, y_pred))
 
 
-# knn2 = KNeighborsClassifier()
-# param_grid = {‘n_neighbors’: np.arange(1, 25)}
-# knn_gscv = GridSearchCV(knn2, param_grid, cv=5)
-# knn_gscv.fit(X, y)
-# print(knn_gscv.best_params_)
-# print(knn_gscv.best_score_)
+#%%
+#SMOTE
+
+X=spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
+
+y=spotifydf["popularity"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1, stratify=y)
+
+smo = SMOTE(random_state = 2)
+
+x_train_res, y_train_res = smo.fit_resample(X_train, y_train)
 
 #%%
-lr_fpr, lr_tpr, _ = roc_curve(y_test, _train)
-plt.plot(lr_fpr, lr_tpr, marker='.', label='KNN')
+#KNN SMOTE
 
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC: KNN')
-plt.legend()
-# Visualization of Result
-import seaborn as sns
-plt.figure(figsize=(5, 7))
-ax = sns.distplot(y_test, hist=False, color="r", label="Actual Value")
-sns.distplot(y_train, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Popularity')
-plt.show()
-plt.close()
+knn_smo = KNeighborsClassifier(n_neighbors=9)
+
+knn_smo.fit(x_train_res,y_train_res)
+
+knn_smo_pred = knn_smo.predict(X_test)
+
+print(cross_val_score(knn_smo, x_train_res, y_train_res, cv=10))
+
 #%%
-#Accuracy
+#Evaluation metrics SMOTE
 
 print(" ")
 print("The Classification Report")
-print(classification_report(y_test, y_train))
+print(classification_report(y_test, knn_smo_pred))
 print(" ")
 print("Accuracy is ")
-print(accuracy_score(y_test,y_train))
+print(accuracy_score(y_test,knn_smo_pred))
 print(" ")
 print("Precision Score")
-print(precision_score(y_test, y_train))
+print(precision_score(y_test, knn_smo_pred))
 print(" ")
 print("Recall Score")
-print(recall_score(y_test, y_train))
+print(recall_score(y_test, knn_smo_pred))
 print(" ")
 print("ROC_AUC Score")
-print(roc_auc_score(y_test, y_train))
-
-#%%
-#Data Visualization
-# display = PrecisionRecallDisplay.from_estimator(
-#     rf_best, X_test, Y_test)
-# _ = display.ax_.set_title("2-class Precision-Recall curve")
-
-# fpr, tpr, _ = metrics.roc_curve(Y_test,  y_pred)
-# auc = metrics.roc_auc_score(Y_test, y_pred)
-# plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
-# plt.legend(loc=4)
-# plt.show()
-
-y_pred=rf_best.predict(X_test)
-
-lr_fpr, lr_tpr, _ = roc_curve(y_test, y_train)
-plt.plot(lr_fpr, lr_tpr, marker='.', label='KNN')
-
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC: Random Forest')
-plt.legend()
-# Visualization of Result
-import seaborn as sns
-plt.figure(figsize=(5, 7))
-ax = sns.distplot(y_test, hist=False, color="r", label="Actual Value")
-sns.distplot(y_train, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Price')
-plt.show()
-plt.close()
-
-#%%
-#Number of songs released in per year
-
-spotifydf["year"] = spotifydf["release_date"].dt.year
-sns.displot(spotifydf["year"], discrete = True, aspect = 2, height = 7, kind = "hist", kde = True, color = 'green').set(title="Number of song per year")
-
-#%%
-#Most popular songs
-most_popularity = spotifydf.query('popularity > 90', inplace = False).sort_values('popularity', ascending = False)
-most_popularity.head(10)
-
-#%%
-lead_songs = most_popularity[['name', 'popularity']].head(20)
-lead_songs
-#%%
-fig, ax = plt.subplots(figsize = (10, 10))
-
-ax = sns.barplot(x = lead_songs.popularity, y = lead_songs.name, color = 'lightgreen', orient = 'h', edgecolor = 'black', ax = ax)
-
-ax.set_xlabel('Popularity', c ='red', fontsize = 12, weight = 'bold')
-ax.set_ylabel('Songs', c = 'red', fontsize = 12, weight = 'bold')
-ax.set_title('20 Most Popular Songs in Dataset', c = 'red', fontsize = 14, weight = 'bold')
-
-plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(roc_auc_score(y_test, knn_smo_pred))
 
 
 #%%
@@ -621,9 +502,7 @@ plt.show()
 
 # %%
 spotifydf.columns
-# %%
-#dance,energy
-spotifydf["month"].plot(kind="hist")
+
 # %%
 x_spotifydf = spotifydf.loc[:,["explicit","danceability","energy","loudness","mode","speechiness","acousticness","instrumentalness","liveness","valence","tempo","duration_min","year","month"]]
 
@@ -659,7 +538,7 @@ import seaborn as sns
 plt.figure(figsize=(5, 7))
 ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
 sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Price')
+plt.title('Actual vs Fitted Values for Popularity')
 plt.show()
 plt.close()
 #%%
@@ -756,7 +635,7 @@ import seaborn as sns
 plt.figure(figsize=(5, 7))
 ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
 sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Price')
+plt.title('Actual vs Fitted Values for Popularity')
 plt.show()
 plt.close()
 
@@ -773,10 +652,6 @@ print(len(selected_feat))
 print(selected_feat)
 
 #%%
-# pd.series(sel.estimator_,feature_importances_,.ravel()).hist()
-
-
-#%%
 #Based on Feature selection creating new training data
 x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
 
@@ -784,26 +659,29 @@ y_spotifydf1 = spotifydf[['popularity']]
 
 X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf1, y_spotifydf1, test_size= 0.2, random_state= 321)
 
-# %%
+#%%
 #RF using GridSearchCV
 
-rfc=RandomForestClassifier(random_state=42)
+##### GridSearchCV CODES TAKE OVER 3 HOURS TO RUN ########
+# rfc=RandomForestClassifier(random_state=42)
 
-param_grid = { 
-    'n_estimators': [100,200,300,400,500],
-    'max_features': ['auto', 'sqrt', 'log2'],
-    'max_depth' : [4,5,6,7,8,10,14,20],
-    'criterion' :['gini', 'entropy',"log_loss"],
-    'bootstrap' :[True,False],
-    'oob_score' :[True,False]
-}
+# param_grid = { 
+#     'n_estimators': [100,200,300,400,500],
+#     'max_features': ['auto', 'sqrt', 'log2'],
+#     'max_depth' : [4,5,6,7,8,10,14,20],
+#     'criterion' :['gini', 'entropy',"log_loss"],
+#     'bootstrap' :[True,False],
+#     'oob_score' :[True,False]
+# }
 
-CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
-CV_rfc.fit(X_train, Y_train)
+# CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
+# CV_rfc.fit(X_train, Y_train)
 
 
-print(CV_rfc.best_params_)
+# print(CV_rfc.best_params_)
+###### HENCE, HERE'S A DESCRIPTION OF THE RESULTS TO SAVE TIME ##########
 
+print(f"The best hyperparameters for RF using GridSearchCV were: max_features='auto', n_estimators= 200, max_depth=8, criterion='gini', bootstrap=True, and oob_score=True.")
 
 
 #%%
@@ -856,10 +734,11 @@ import seaborn as sns
 plt.figure(figsize=(5, 7))
 ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
 sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Price')
+plt.title('Actual vs Fitted Values for Popularity')
 plt.show()
 plt.close()
-# %%
+
+#%%
 # SMOTE_RF_with FE
 x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
 y_spotifydf1 = spotifydf[['popularity']]
@@ -911,39 +790,14 @@ plt.ylabel('True Positive Rate')
 plt.title('ROC: Random Forest')
 plt.legend()
 # Visualization of Result
+
 import seaborn as sns
 plt.figure(figsize=(5, 7))
 ax = sns.distplot(Y_test, hist=False, color="r", label="Actual Value")
 sns.distplot(y_pred, hist=False, color="b", label="Fitted Values" , ax=ax)
-plt.title('Actual vs Fitted Values for Price')
+plt.title('Actual vs Fitted Values for Popularity')
 plt.show()
 plt.close()
 
-#%%
-x_spotifydf1 = spotifydf.loc[:,['danceability', 'energy', 'loudness', 'speechiness', 'acousticness','liveness', 'valence', 'tempo', 'duration_min', 'year']]
-y_spotifydf1 = spotifydf[['popularity']]
-X_train, X_test, Y_train, Y_test = train_test_split(x_spotifydf1, y_spotifydf1, test_size= 0.2, random_state= 321)
-smo = SMOTE(random_state = 2)
-x_train_res, y_train_res = smo.fit_resample(X_train, Y_train)
-# %%
-#GridsearchCV
-rfc=RandomForestClassifier(random_state=42)
-
-param_grid = { 
-    'n_estimators': [100,200,300,400,500],
-    'max_features': ['auto', 'sqrt', 'log2'],
-    'max_depth' : [4,5,6,7,8,10,14,20],
-    'criterion' :['gini', 'entropy',"log_loss"],
-    'bootstrap' :[True,False],
-    'oob_score' :[True,False]
-}
-
-CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
-CV_rfc.fit(x_train_res, y_train_res)
 
 
-print(CV_rfc.best_params_)
-
-#%%
-print(10)
-# %%
